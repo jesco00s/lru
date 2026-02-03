@@ -18,15 +18,14 @@ type LRUCache struct {
 }
 
 func Constructor(capacity int) LRUCache {
-	return LRUCache{capacity: capacity}
+	return LRUCache{capacity: capacity, cache: make(map[int]*Node)}
 }
 
-// Get retrieves a value from the cache.
-// Moves the accessed node to the head (most recent).
 func (c *LRUCache) Get(key int) int {
 	// TODO
 	n, exists := c.cache[key]
 	if exists {
+		c.moveToFront(n)
 		return n.value
 	}
 	return -1
@@ -35,24 +34,35 @@ func (c *LRUCache) Get(key int) int {
 // Put adds or updates a value.
 // If at capacity, remove the tail (least recent).
 func (c *LRUCache) Put(key int, value int) {
-	// TODO figure out if you need to remove a node before inserting
+	//TODO figure out if there is capacity
 
-	//Need to check if key exists in the cache
-	//If exists remove old one and insert a new one at the head.
+	n, exists := c.cache[key]
+	if !exists {
+		node := Node{key: key, value: value, next: c.head}
+		c.head = &node //need to check if nil. If nil then assign like this. else move it over and assign new head
+		c.cache[key] = &node
+		return
+	}
 
-	//else make a new node
-	//insert at the head
-	node := Node{key: key, value: value, next: c.head}
-	c.head = &node
-	c.cache[key] = &node
-
+	n.value = value
+	c.moveToFront(n)
 }
 
 // -------- Helper methods (you can add these) --------
 
 // removeNode removes a node from the doubly linked list.
 func (c *LRUCache) removeNode(node *Node) {
-	// TODO
+	if c.head.key == node.key {
+		delete(c.cache, node.key)
+		if c.head.next == nil {
+			c.head = nil
+		} else {
+			c.head = c.head.next
+		}
+	}
+
+	//TODO need to add logic to remove node if not the head
+	//iterate through until we find the node
 }
 
 // addToFront inserts a node right after head.
@@ -60,9 +70,24 @@ func (c *LRUCache) addToFront(node *Node) {
 	// TODO
 }
 
-// moveToFront moves an existing node to the front.
 func (c *LRUCache) moveToFront(node *Node) {
-	// TODO
+	if c.head.key == node.key {
+		return
+	}
+
+	currentNode := c.head.next
+	previousNode := c.head
+
+	for currentNode.key != node.key {
+		previousNode = currentNode
+		currentNode = currentNode.next
+	}
+
+	previousNode.next = nil
+	c.head.prev = currentNode
+	currentNode.next = c.head
+	currentNode.prev = nil
+	c.head = currentNode
 }
 
 // removeTail removes the tail node and returns it.
@@ -75,5 +100,26 @@ func main() {
 	cache := Constructor(2)
 
 	cache.Put(1, 100)
-	fmt.Println("cache", cache)
+
+	cache.Put(2, 200)
+
+	cache.Put(1, 101)
+
+	node := cache.head
+	for node != nil {
+		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
+		node = node.next
+	}
+
+	fmt.Println("--------------------------")
+
+	cache.Get(2)
+
+	node = cache.head
+	for node != nil {
+		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
+		node = node.next
+	}
+
+	// cache.removeNode(&Node{key: 1, value: 100})
 }
