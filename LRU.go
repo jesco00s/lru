@@ -30,13 +30,13 @@ func (c *LRUCache) Get(key int) int {
 	return -1
 }
 
-// Put adds or updates a value.
-// If at capacity, remove the tail (least recent).
 func (c *LRUCache) Put(key int, value int) {
-	//TODO figure out if there is capacity
-
 	n, exists := c.cache[key]
 	if !exists {
+		if len(c.cache) == c.capacity {
+			c.removeTail()
+		}
+
 		node := Node{key: key, value: value, next: c.head}
 		c.cache[key] = &node
 
@@ -97,10 +97,18 @@ func (c *LRUCache) moveToFront(node *Node) {
 	c.head = currentNode
 }
 
-// removeTail removes the tail node and returns it.
-// func (c *LRUCache) removeTail() *Node {
-// 	// TODO
-// }
+func (c *LRUCache) removeTail() {
+	tailNode := c.head.next
+	previousNode := c.head
+
+	for tailNode.next != nil {
+		previousNode = tailNode
+		tailNode = tailNode.next
+	}
+
+	previousNode.next = nil
+	delete(c.cache, tailNode.key)
+}
 
 func main() {
 
@@ -129,6 +137,26 @@ func main() {
 	fmt.Println("--------------------------")
 
 	cache.Get(2)
+
+	node = cache.head
+	for node != nil {
+		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
+		node = node.next
+	}
+
+	fmt.Println("--------------------------")
+
+	cache.Put(3, 300)
+
+	node = cache.head
+	for node != nil {
+		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
+		node = node.next
+	}
+
+	fmt.Println("--------------------------")
+
+	cache.Put(4, 400)
 
 	node = cache.head
 	for node != nil {
