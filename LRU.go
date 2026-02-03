@@ -22,7 +22,6 @@ func Constructor(capacity int) LRUCache {
 }
 
 func (c *LRUCache) Get(key int) int {
-	// TODO
 	n, exists := c.cache[key]
 	if exists {
 		c.moveToFront(n)
@@ -39,8 +38,16 @@ func (c *LRUCache) Put(key int, value int) {
 	n, exists := c.cache[key]
 	if !exists {
 		node := Node{key: key, value: value, next: c.head}
-		c.head = &node //need to check if nil. If nil then assign like this. else move it over and assign new head
 		c.cache[key] = &node
+
+		if c.head == nil {
+			c.head = &node
+			return
+		}
+
+		c.head.prev = &node
+		node.next = c.head
+		c.head = &node
 		return
 	}
 
@@ -103,9 +110,17 @@ func main() {
 
 	cache.Put(2, 200)
 
+	node := cache.head
+	for node != nil {
+		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
+		node = node.next
+	}
+
+	fmt.Println("--------------------------")
+
 	cache.Put(1, 101)
 
-	node := cache.head
+	node = cache.head
 	for node != nil {
 		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
 		node = node.next
