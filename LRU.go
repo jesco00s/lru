@@ -29,6 +29,11 @@ func (c *LRUCache) Get(key int) int {
 }
 
 func (c *LRUCache) Put(key int, value int) {
+
+	if c.capacity < 1 {
+		return
+	}
+
 	n, exists := c.cache[key]
 	if !exists {
 		if len(c.cache) == c.capacity {
@@ -63,9 +68,13 @@ func (c *LRUCache) moveToFront(node *Node) {
 	currentNode := c.head.next
 	previousNode := c.head
 
-	for currentNode.key != node.key {
+	for currentNode != nil && currentNode.key != node.key {
 		previousNode = currentNode
 		currentNode = currentNode.next
+	}
+
+	if currentNode == nil {
+		return
 	}
 
 	previousNode.next = currentNode.next
