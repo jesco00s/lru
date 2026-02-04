@@ -5,7 +5,6 @@ import "fmt"
 type Node struct {
 	key   int
 	value int
-	prev  *Node
 	next  *Node
 }
 
@@ -13,8 +12,7 @@ type Node struct {
 type LRUCache struct {
 	capacity int
 	cache    map[int]*Node
-	head     *Node // Most recently used
-	tail     *Node // Least recently used
+	head     *Node
 }
 
 func Constructor(capacity int) LRUCache {
@@ -45,7 +43,7 @@ func (c *LRUCache) Put(key int, value int) {
 			return
 		}
 
-		c.head.prev = &node
+		// c.head.prev = &node
 		node.next = c.head
 		c.head = &node
 		return
@@ -56,26 +54,6 @@ func (c *LRUCache) Put(key int, value int) {
 }
 
 // -------- Helper methods (you can add these) --------
-
-// removeNode removes a node from the doubly linked list.
-func (c *LRUCache) removeNode(node *Node) {
-	if c.head.key == node.key {
-		delete(c.cache, node.key)
-		if c.head.next == nil {
-			c.head = nil
-		} else {
-			c.head = c.head.next
-		}
-	}
-
-	//TODO need to add logic to remove node if not the head
-	//iterate through until we find the node
-}
-
-// addToFront inserts a node right after head.
-func (c *LRUCache) addToFront(node *Node) {
-	// TODO
-}
 
 func (c *LRUCache) moveToFront(node *Node) {
 	if c.head.key == node.key {
@@ -90,33 +68,42 @@ func (c *LRUCache) moveToFront(node *Node) {
 		currentNode = currentNode.next
 	}
 
-	previousNode.next = nil
-	c.head.prev = currentNode
+	previousNode.next = currentNode.next
 	currentNode.next = c.head
-	currentNode.prev = nil
 	c.head = currentNode
 }
 
 func (c *LRUCache) removeTail() {
-	tailNode := c.head.next
+
+	if c.head == nil {
+		return
+	}
+
+	if c.head.next == nil {
+		delete(c.cache, c.head.key)
+		c.head = nil
+		return
+	}
+
+	currNode := c.head.next
 	previousNode := c.head
 
-	for tailNode.next != nil {
-		previousNode = tailNode
-		tailNode = tailNode.next
+	for currNode.next != nil {
+		previousNode = currNode
+		currNode = currNode.next
 	}
 
 	previousNode.next = nil
-	delete(c.cache, tailNode.key)
+	delete(c.cache, currNode.key)
 }
 
 func main() {
 
 	cache := Constructor(2)
-
-	cache.Put(1, 100)
-
-	cache.Put(2, 200)
+	cache.Put(1, 1)
+	cache.Put(2, 2)
+	cache.Put(1, 10)
+	cache.Put(3, 3)
 
 	node := cache.head
 	for node != nil {
@@ -126,7 +113,7 @@ func main() {
 
 	fmt.Println("--------------------------")
 
-	cache.Put(1, 101)
+	fmt.Println("get 2", cache.Get(2))
 
 	node = cache.head
 	for node != nil {
@@ -136,7 +123,7 @@ func main() {
 
 	fmt.Println("--------------------------")
 
-	cache.Get(2)
+	fmt.Println("get 1", cache.Get(1))
 
 	node = cache.head
 	for node != nil {
@@ -146,23 +133,11 @@ func main() {
 
 	fmt.Println("--------------------------")
 
-	cache.Put(3, 300)
+	fmt.Println("get 3", cache.Get(3))
 
 	node = cache.head
 	for node != nil {
 		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
 		node = node.next
 	}
-
-	fmt.Println("--------------------------")
-
-	cache.Put(4, 400)
-
-	node = cache.head
-	for node != nil {
-		fmt.Printf("Node: key %d, value %d \n", node.key, node.value)
-		node = node.next
-	}
-
-	// cache.removeNode(&Node{key: 1, value: 100})
 }
